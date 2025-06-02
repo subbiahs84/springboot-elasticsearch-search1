@@ -4,6 +4,6 @@ spring:
 
 elasticsearch:
   cloud:
-    index: codeconnect-search-000001
-    endpoint: https://2a625da14db74f399fa212c681a04d6b.us-central1.gcp.cloud.es.io
-    apiKey: WmVQMExwY0Jod1FqVFJKaXowdVg6WGlmclU1VVEzR3R6SHEtc1JGZ0tLZw==
+    index: <IndexName>
+    endpoint: <ElasticCloudEndpoint>
+    apiKey: <ElasticCloudAPIKey>
