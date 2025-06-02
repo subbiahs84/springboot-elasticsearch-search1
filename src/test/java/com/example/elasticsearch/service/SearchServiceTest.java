@@ -8,6 +8,8 @@ import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,7 +29,7 @@ public class SearchServiceTest {
     private ElasticsearchClient elasticsearchClient;
 
     @Mock
-    private ObjectMapper mapper;
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private SearchService searchService;
