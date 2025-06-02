@@ -32,4 +32,14 @@ public class SearchController {
              throw new RuntimeException("Search failed: " + e.getMessage(), e);
         }
     }
+
+    @PostMapping("/simple")
+    public ResponseEntity<?> simpleSearch(@RequestParam String keyword) throws IOException {
+        try {
+            List<JsonNode> results = searchService.simpleSearch(keyword);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+             throw new RuntimeException("Search failed: " + e.getMessage(), e);
+        }
+    }
 }

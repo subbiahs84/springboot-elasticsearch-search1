@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +21,7 @@ public class SearchService {
     private final ElasticsearchClient elasticsearchClient;
 
     @Value("${elasticsearch.cloud.index}")
-    private String index;
+    private String indexName;
 
     public SearchService(ElasticsearchClient elasticsearchClient) {
         this.elasticsearchClient = elasticsearchClient;
@@ -28,7 +29,7 @@ public class SearchService {
 
    public List<JsonNode> searchWithJson(String queryJson) throws IOException {
         SearchRequest request = SearchRequest.of(b -> b
-                .index(index)
+                .index(indexName)
                 .withJson(new StringReader(queryJson)));
 
         SearchResponse<JsonNode> response = elasticsearchClient.search(request, JsonNode.class);
@@ -36,4 +37,22 @@ public class SearchService {
                 .map(Hit::source)
                 .collect(Collectors.toList());
     }
+
+    public List<JsonNode> simpleSearch(String keyword) throws IOException {
+        SearchRequest request = SearchRequest.of(s -> s
+                .index(indexName)
+                .query(q -> q
+                        .multiMatch(m -> m
+                                .fields("title", "description") // Change fields as needed
+                                .query(keyword))));
+
+        SearchResponse<JsonNode> response = elasticsearchClient.search(request, JsonNode.class);
+
+        List<JsonNode> resultList = new ArrayList<>();
+        for (Hit<JsonNode> hit : response.hits().hits()) {
+            resultList.add(hit.source());
+        }
+        return resultList;
+    }
+
 }
