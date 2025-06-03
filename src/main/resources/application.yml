@@ -3,7 +3,19 @@ spring:
     name: elasticsearch-search
 
 elasticsearch:
+  mode: cloud # or "local"
+  index: codeconnect-search-000001
   cloud:
-    index: <IndexName>
-    endpoint: <ElasticCloudEndpoint>
-    apiKey: <ElasticCloudAPIKey>
+    endpoint: https://2a625da14db74f399fa212c681a04d6b.us-central1.gcp.cloud.es.io
+    apiKey: WmVQMExwY0Jod1FqVFJKaXowdVg6WGlmclU1VVEzR3R6SHEtc1JGZ0tLZw==
+  local:
+    host: localhost
+    port: 9200
+    scheme: http
+    username: ""
+    password: ""
+
+search:
+  keywordFields:
+    - title
+    - description

@@ -5,6 +5,9 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+
+import com.example.elasticsearch.component.SearchProperties;
+import com.example.elasticsearch.config.ElasticClientConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,17 +24,23 @@ import java.util.stream.Collectors;
 public class SearchService {
 
     private final ElasticsearchClient elasticsearchClient;
+    private final ElasticClientConfig config;
+    private final SearchProperties searchProperties;
 
-    @Value("${elasticsearch.cloud.index}")
+    @Value("${elasticsearch.index}")
     private String indexName;
 
-    public SearchService(ElasticsearchClient elasticsearchClient) {
+   public SearchService(ElasticsearchClient elasticsearchClient,
+                         ElasticClientConfig config,
+                         SearchProperties searchProperties) {
         this.elasticsearchClient = elasticsearchClient;
+        this.config = config;
+        this.searchProperties = searchProperties;
     }
 
    public List<JsonNode> searchWithJson(String queryJson) throws IOException {
         SearchRequest request = SearchRequest.of(b -> b
-                .index(indexName)
+                .index(config.getIndexName())
                 .withJson(new StringReader(queryJson)));
 
         SearchResponse<JsonNode> response = elasticsearchClient.search(request, JsonNode.class);
@@ -41,26 +50,27 @@ public class SearchService {
     }
 
     public List<JsonNode> simpleSearch(String keyword) throws IOException {
-        SearchRequest request = SearchRequest.of(s -> s
-                .index(indexName)
-                .query(q -> q
-                        .multiMatch(m -> m
-                                .fields("title", "description") // Change fields as needed
-                                .query(keyword))));
 
-        SearchResponse<JsonNode> response = elasticsearchClient.search(request, JsonNode.class);
+            SearchRequest request = SearchRequest.of(s -> s
+                            .index(config.getIndexName())
+                            .query(q -> q
+                                            .multiMatch(m -> m
+                                                            .fields(searchProperties.getKeywordFields())
+                                                            .query(keyword))));
 
-        List<JsonNode> resultList = new ArrayList<>();
-        for (Hit<JsonNode> hit : response.hits().hits()) {
-            resultList.add(hit.source());
-        }
-        return resultList;
+            SearchResponse<JsonNode> response = elasticsearchClient.search(request, JsonNode.class);
+
+            List<JsonNode> resultList = new ArrayList<>();
+            for (Hit<JsonNode> hit : response.hits().hits()) {
+                    resultList.add(hit.source());
+            }
+            return resultList;
     }
 
     public List<JsonNode> searchWithKeywordAndFilters(String keyword, Map<String, Object> filters) throws IOException {
         Query keywordQuery = Query.of(q -> q
                 .multiMatch(m -> m
-                        .fields("title", "description") // You can adjust these
+                        .fields(searchProperties.getKeywordFields()) // You can adjust these
                         .query(keyword)));
 
         // Build filter query (term queries)
@@ -76,7 +86,7 @@ public class SearchService {
                         .filter(filterQueries)));
 
         SearchRequest request = SearchRequest.of(s -> s
-                .index(indexName)
+                .index(config.getIndexName())
                 .query(combinedQuery));
 
         SearchResponse<JsonNode> response = elasticsearchClient.search(request, JsonNode.class);
